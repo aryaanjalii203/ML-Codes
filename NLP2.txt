@@ -1,0 +1,250 @@
+#Text Preprocessing and Sentiment Classification 🗣️📈
+
+import pandas as pd
+df=pd.read_csv('/content/Tweets.csv')
+
+import string
+import nltk
+import spacy
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+
+nltk.download('stopwords')
+nltk.download('punkt')
+
+nlp=spacy.load('en_core_web_sm')
+
+def preprocess_text(text):
+  if not isinstance(text, str):
+    text=''
+  text=text.translate(str.maketrans('', '', string.punctuation))
+
+  tokens=nltk.word_tokenize(text.lower())
+
+  tokens=[token for token in tokens if token not in stopwords.words('english')]
+
+  stemmer=PorterStemmer()
+  tokens=[stemmer.stem(token) for token in tokens]
+
+  doc=nlp(' '.join(tokens))
+  tokens=[token.lemma_ for token in doc]
+
+  return ' '.join(tokens)
+
+  df['processed_text']=df['text'].apply(preprocess_text)
+  from sklearn.feature_extraction.text import TfidfVectorizer
+  vectorizer=TfidfVectorizer()
+  X=vectorizer.fit_transform(df['processed_text'])
+  y=df['airline_sentiment']
+
+  from sklearn.model_selection import train_test_split
+  from sklearn.navie_bayes import MultinomialNB
+  from sklearn.metrics import accuracy_score,classification_report,confusion_matrix
+  X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=42)
+
+  classifier=MultinomialNB()
+  classifier.fit(X_train,y_train)
+
+  y_pred=classifier.predict(X_test)
+  print('Accuracy:',accuracy_score(y_test,y_pred))
+  print('Classification Report:\n',classification_report(y_test,y_pred))
+
+
+#Email Spam Classification Using TF-IDF and Cosine Similarity 📧🔍
+
+
+import nltk
+import numpy as np
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from nltk.corpus import stopwords
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
+stemmer=PorterStemmer()
+lemmatizer=WordNetLemmatizer()
+
+def preprocess(text):
+  tokens = nltk.word_tokenize(text.lower())
+  tokens=[words for words in tokens if words.isalpha() and words not in stopwords.words('english')]
+  tokens=[lemmatizer.lemmatize(words) for words in tokens]
+  return tokens
+
+emails = [ "Win a brand new car by clicking here!",
+"Meeting scheduled for tommorrow at 3 pm.",
+"Congratulations, you've been selected to recieve a free vacation!",
+"Please find the attached report for your review.",
+"Get rich quick by investing in this scheme!"
+]
+
+preprocessed_emails = [preprocess(email) for email in emails]
+preprocessed_emails_joined=[' '.join(email) for email in preprocessed_emails]
+vectorizer=TfidfVectorizer()
+email_vector=vectorizer.fit_transform(preprocessed_emails_joined)
+print(email_vector.toarray())
+
+new_email='I have meeting, please give quick response'
+new_email_preprocessed=preprocess(new_email)
+new_email_vector=vectorizer.transform([' '.join(new_email_preprocessed)])
+similarity_score=cosine_similarity(new_email_vector,email_vector)
+labels = np.array([1,0,1,0,1])
+most_similar= np.argmax(similarity_score)
+classified_label = labels[most_similar]
+print("New emails classified as:","Spam" if classified_label==1 else "Not Spam")
+
+
+#Word Embedding with Word2Vec 🧠🔤
+
+
+from gensim.models import Word2Vec
+sentences=[['this','is','first','document'],
+    ['this','is','second','document'],
+        ['and','this','is','third','document'],
+            ['and','this','is','fourth','document']]
+model=Word2Vec(sentences,vector_size=100,window=5,min_count=1,sg=0,workers=4)
+vector=model.wv['document']
+print(vector)
+print(f"vector of document:{vector}")
+similiar_words=model.wv.most_similar('document',topn=2)
+print(f"similiar words to document:{similiar_words}")
+
+
+#Word2Vec Pretrained Model for Finding Similar Words 🌐🔍
+
+import gensim.downloader as api
+model=api.load('word2vec-google-news-300')
+similar_words=model.most_similar('document')
+print('similiar words to document:', similar_words)
+similar_words=model.most_similar('King')
+print('similiar words to document:', similar_words)
+similar_words=model.most_similar('Queen')
+print('similiar words to document:', similar_words)
+
+
+
+#Exploring Word Vectors with GloVe 👑🔎
+
+vector = globe_vectors['king']
+print(vector)
+similar_words = globe_vectors.most_similar('king')
+print(similar_words)
+
+
+
+#Word Analogies and Similarity with GloVe 🔄💡
+
+analogy = globe_vectors.most_similar(positive=['woman', 'king'], negative=['man'])
+print('analogy result',analogy)
+similarity = globe_vectors.similarity('king','queen')
+print('similarity result',similarity)
+
+
+#PCA for Dimensionality Reduction and Visualization 📉🔍
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+# Corrected random number generation
+data = pd.DataFrame({
+    'Feature1': np.random.rand(100),
+    'Feature2': np.random.rand(100),
+    'Feature3': np.random.rand(100),
+    'Feature4': np.random.rand(100)
+})
+
+# Scaling the data
+scaler = StandardScaler()
+data_scaled = scaler.fit_transform(data)
+
+# Applying PCA
+pca = PCA(n_components=2)
+data_pca = pca.fit_transform(data_scaled)
+pca_df = pd.DataFrame(data_pca, columns=['PC1', 'PC2'])
+
+# Plotting original features (e.g., Feature1 vs. Feature2)
+plt.figure(figsize=(10, 7))
+plt.scatter(data['Feature1'], data['Feature2'])
+plt.xlabel('Feature1')
+plt.ylabel('Feature2')
+plt.title('Original Features: Feature1 vs. Feature2')
+plt.grid()
+plt.show()
+
+# Plotting PCA components
+plt.figure(figsize=(10, 7))
+plt.scatter(pca_df['PC1'], pca_df['PC2'])
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('PCA 2D Visualization')
+plt.grid()
+plt.show()
+
+
+#PCA Visualization of Document Embeddings Using spaCy 📄🔍
+
+
+import spacy
+import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+nlp=spacy.load('en_core_web_sm')
+documents=[
+    " I love programming in pytohn",
+    " Python is the great programming language",
+    " I don't enjoy leaning machine learning",
+    " Machine is learning is not fascinating",
+    " Data science and AI are the future",
+    " AI will tranform many industries",
+    " I love exporing data",
+    " Pyhton and Data Science go hand in hand"
+]
+
+def get_embedding(documents):
+  return nlp(documents).vector
+
+emdeddings=np.array([get_embedding(doc) for doc in documents])
+scalar=StandardScaler()
+scaled_embeddings=scalar.fit_transform(emdeddings)
+pca=PCA(n_components=2)
+principal_components=pca.fit_transform(scaled_embeddings)
+
+pca_df=pd.DataFrame(data=principal_components,columns=['PC1','PC2'])
+plt.figure(figsize=(10,6))
+plt.scatter(pca_df['PC1'],pca_df['PC2'])
+for i, doc in enumerate(documents):
+  plt.annotate(doc, (pca_df['PC1'][i],pca_df['PC2'][i]))
+plt.title('PCA of documents')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.grid()
+plt.show()
+
+
+#Dimensionality Reduction and Similarity Measurement with Sparse Random Projection 📉🔍
+
+import numpy as np
+from sklearn.random_projection import SparseRandomProjection
+from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
+data=np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+lsh=SparseRandomProjection(n_components=2)
+lsh_data=lsh.fit_transform(data)
+similarity=cosine_similarity(lsh_data)
+print("Transformed data",lsh_data)
+print("Cosine Similarity",similarity)
+plt.scatter(lsh_data[:,0],lsh_data[:,1])
+plt.title('Transformed data in 2D after LSH Projection')
+plt.xlabel('Component 1')
+plt.ylabel('Component 2')
+plt.grid()
+plt.show()
+
+
+
