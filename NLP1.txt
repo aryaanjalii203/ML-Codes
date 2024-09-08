@@ -1,0 +1,159 @@
+#Tokenization using NLTK 📝🔍
+
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize, sent_tokenize
+
+text="I am learning Natural Language Processing."
+word_token=text_tokenize
+print(word_tokenize(text))
+print(sent_tokenize(text))
+
+#Punctuation Removal from Text ✂️📝
+import string
+text="hello guys!!........... i am writing code for removal of punctuation from my text"
+translator=str.maketrans("","",string.punctuation)
+new_text=text.translate(translator)
+print(new_text)
+
+
+
+#Stopword Removal from Text 🛑📄
+
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+text="hello guys!!........... i am writing code for removal of punctuation from my text"
+words=word_tokenize(text.lower())
+stop_words=set(stopwords.words("english"))
+print('stopwords:',stop_words)
+filtered_text=[word for word in words if word not in stop_words]
+print(filtered_text)
+
+
+#Expanding Contractions in Text 🔄✍️
+
+
+import contractions
+text="don't haven't "
+print(contractions.fix(text))
+
+
+#Text Vectorization using CountVectorizer 📊📝
+
+from sklearn.feature_extraction.text import CountVectorizer
+corpus=["This is a smaple text", "this sentence is another example." ]
+vectorizer=CountVectorizer()
+X=vectorizer.fit_transform(corpus)
+print(vectorizer.get_feature_names_out())
+print(X.toarray())
+
+
+#Combining and Vectorizing Multiple Text Corpora 📚🔢
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+corpus = ["This is a smaple text.", 'this sentence is another example.']
+corpus2 = [
+    "This is the first document.",
+        "This document is the second document.",
+            "And this is the third one.",
+                "Is this the first document?"
+                ]
+
+combined_corpus = corpus + corpus2
+
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(combined_corpus)
+print(vectorizer.get_feature_names_out())
+print(X.toarray())
+
+
+#TF-IDF Vectorization of Text Data 📈📝
+
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+corpus=["This is a smaple text", "this sentence is another example.",
+ "This document is the second document.",
+             "And this is the third one." ]
+
+vectorizer=TfidfVectorizer()
+X=vectorizer.fit_transform(corpus)
+print(vectorizer.get_feature_names_out())
+print(X.toarray())
+
+
+#Sentiment Analysis Using Logistic Regression 📊🧠
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+import string
+
+# Download required NLTK resources
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+# Sample data
+data = {
+    'text': [
+        "i love this movie", "i hate this movie", "this movie is okay", 
+        "i enjoyed this movie", "this movie was terrible", "amazing film",
+        "worst film ever", "quite liked the movie", "not bad", "pretty good"
+    ],
+    'sentiment': [1, 0, 1, 1, 0, 1, 0, 1, 1, 1]
+}
+
+# Create a DataFrame
+df = pd.DataFrame(data)
+
+# Initialize stemmer, lemmatizer, and stopwords
+stemmer = PorterStemmer()
+lemmatizer = WordNetLemmatizer()
+stop_words = set(stopwords.words('english'))
+
+# Preprocessing function
+def preprocess_text(text):
+    text = text.lower()
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    tokens = text.split()
+    tokens = [stemmer.stem(token) for token in tokens if token not in stop_words]
+    preprocessed_text = ' '.join(tokens)
+    return preprocessed_text
+
+# Apply preprocessing to the text data
+df['text'] = df['text'].apply(preprocess_text)
+
+# Vectorize the text data
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(df['text'])
+y = df['sentiment']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize and train the model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Calculate performance metrics
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+# Print the metrics
+print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"F1 Score: {f1}")
